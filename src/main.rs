@@ -34,13 +34,20 @@ async fn main() -> Result<()> {
 
     println!("public_key=\"{}\"", private_key.public_key());
 
-    let _network = NetworkBuilder::<Dummy>::new(network_id.into())
+    let network = NetworkBuilder::<Dummy>::new(network_id.into())
         .private_key(private_key)
         .bootstrap()
         .relay(relay_url, false, 0)
         .discovery(LocalDiscovery::new())
         .build()
         .await?;
+
+    tokio::spawn(async move {
+        let mut rx = network.events().await.unwrap();
+        while let Ok(event) = rx.recv().await {
+            println!("{:?}", event);
+        }
+    });
 
     signal::ctrl_c().await?;
 
