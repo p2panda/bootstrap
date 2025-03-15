@@ -2,7 +2,6 @@ use std::hash::Hash as StdHash;
 
 use anyhow::Result;
 use p2panda_core::{Hash, PrivateKey};
-use p2panda_discovery::mdns::LocalDiscovery;
 use p2panda_net::{NetworkBuilder, TopicId};
 use p2panda_sync::TopicQuery;
 use serde::{Deserialize, Serialize};
@@ -38,7 +37,6 @@ async fn main() -> Result<()> {
         .private_key(private_key)
         .bootstrap()
         .relay(relay_url, false, 0)
-        .discovery(LocalDiscovery::new())
         .build()
         .await?;
 

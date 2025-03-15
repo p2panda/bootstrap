@@ -315,7 +315,6 @@ dependencies = [
  "anyhow",
  "clap",
  "p2panda-core",
- "p2panda-discovery",
  "p2panda-net",
  "p2panda-sync",
  "serde",
