@@ -24,14 +24,6 @@ impl TopicId for Dummy {
 }
 
 /// Configurable p2panda bootstrap node.
-///
-/// If no data path is provided, the node will run with a randomly-generated ephemeral keypair.
-/// Otherwise the keypair will be loaded from file (or created and saved to file if one was not
-/// previously generated).
-///
-/// The network ID and relay URL must be provided.
-///
-/// Network system event logging may be optionally enabled and will print to `stdout`.
 #[derive(Parser)]
 struct Args {
     /// Path to data directory.
