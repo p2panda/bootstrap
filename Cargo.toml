@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.94"
 clap = { version = "4.5.32", features = ["derive"] }
+hex = "0.4.3"
 p2panda-core = { git = "https://github.com/p2panda/p2panda", rev = "f3a016324b69beac45cf20a792fe6890cb1a21e3" }
 p2panda-net = { git = "https://github.com/p2panda/p2panda", rev = "f3a016324b69beac45cf20a792fe6890cb1a21e3" }
 p2panda-sync = { git = "https://github.com/p2panda/p2panda", rev = "f3a016324b69beac45cf20a792fe6890cb1a21e3", default-features = false }
