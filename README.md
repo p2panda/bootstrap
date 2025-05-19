@@ -52,7 +52,7 @@ Options:
 
 ## Example
 
-`bootstrap -p "." -n chat -r https://wasser.liebechaos.org/`
+`bootstrap --network-id chat --relay-url https://wasser.liebechaos.org/`
 
 ```
 node id:
