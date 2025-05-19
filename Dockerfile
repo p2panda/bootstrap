@@ -14,6 +14,7 @@ COPY --from=BUILDER \
     /usr/local/bin/
 
 ENV NETWORK_ID ""
+ENV DATA_PATH /home
 ENV RELAY_URL https://wasser.liebechaos.org
 
-CMD /usr/local/bin/bootstrap --network-id $NETWORK_ID --relay-url $RELAY_URL
+CMD /usr/local/bin/bootstrap --data-path $DATA_PATH --network-id $NETWORK_ID --relay-url $RELAY_URL
