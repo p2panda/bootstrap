@@ -1,34 +1,32 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 mod keystore;
 
-use std::{hash::Hash as StdHash, path::PathBuf};
+use std::collections::HashMap;
+use std::convert::Infallible;
+use std::path::PathBuf;
 
 use anyhow::Result;
 use clap::Parser;
 use p2panda_core::{Hash, PrivateKey};
-use p2panda_net::{NetworkBuilder, TopicId};
-use p2panda_sync::TopicQuery;
-use serde::{Deserialize, Serialize};
+use p2panda_discovery::address_book::memory::MemoryStore as AddressBookStore;
+use p2panda_net::{NetworkBuilder, NodeId, NodeInfo, TopicId};
+use p2panda_sync::{
+    TopicSyncManager, log_sync::Logs, managers::topic_sync_manager::TopicSyncManagerConfig,
+    topic_log_sync::TopicLogMap,
+};
+use rand_chacha::ChaCha20Rng;
+use rand_chacha::rand_core::SeedableRng;
 use tokio::signal;
 
 use keystore::KeyStore;
 
-#[derive(Clone, Debug, PartialEq, Eq, StdHash, Serialize, Deserialize)]
-struct Dummy {}
-
-impl TopicQuery for Dummy {}
-
-impl TopicId for Dummy {
-    fn id(&self) -> [u8; 32] {
-        unreachable!()
-    }
-}
-
 /// Configurable p2panda bootstrap node.
 #[derive(Parser)]
 struct Args {
-    /// Path to data directory.
-    #[arg(short = 'p', long, value_name = "DATA_PATH")]
-    data_path: Option<PathBuf>,
+    /// Path to private key.
+    #[arg(short = 'p', long, value_name = "PRIVATE_KEY")]
+    private_key: Option<PathBuf>,
 
     /// Network ID.
     #[arg(short = 'n', long)]
@@ -37,39 +35,40 @@ struct Args {
     /// Relay URL.
     #[arg(short = 'r', long)]
     relay_url: String,
-
-    /// Print network events to `stdout`.
-    #[arg(short = 'l', long)]
-    log_events: bool,
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Parse the ClI arguments.
     let args = Args::parse();
 
     // Use an ephemeral private key if one was not provided.
-    let private_key = if let Some(path) = args.data_path {
-        let private_key_path = path.join("private_key.txt");
-        PrivateKey::load_or_create_new(&private_key_path)?
+    let private_key = if let Some(path) = args.private_key {
+        PrivateKey::load_or_create_new(&path)?
     } else {
         PrivateKey::new()
     };
 
-    // Define the public key, network ID and relay URL.
     let public_key = private_key.public_key();
     let network_id = Hash::new(&args.network_id);
-    let relay_url = args.relay_url.parse().expect("valid relay url");
+
+    let store = {
+        let rng = ChaCha20Rng::from_os_rng();
+        AddressBookStore::<ChaCha20Rng, NodeId, NodeInfo>::new(rng.clone())
+    };
+
+    let sync_config = {
+        let store = p2panda_store::MemoryStore::<u64, ()>::new();
+        let topic_map = DummyMap::default();
+        TopicSyncManagerConfig { topic_map, store }
+    };
 
     // Build the bootstrap network.
-    let network = NetworkBuilder::<Dummy>::new(network_id.into())
+    let _network = NetworkBuilder::new(network_id.into())
         .private_key(private_key)
-        .bootstrap()
-        .relay(relay_url, false, 0)
-        .build()
+        .relay(args.relay_url.parse().expect("valid relay url"))
+        .build::<_, TopicSyncManager<TopicId, _, _, _, ()>>(store, sync_config)
         .await?;
 
-    // Print banner.
     println!(
         r#"
      ⢀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -86,7 +85,6 @@ async fn main() -> Result<()> {
         "#
     );
 
-    // Print network info to the terminal.
     println!("node id:");
     println!("\t{}", public_key);
 
@@ -94,47 +92,18 @@ async fn main() -> Result<()> {
     println!("\t{}", args.network_id);
     println!("\t{}", network_id);
 
-    println!("node relay server url:");
-    let relay_url = network
-        .endpoint()
-        .home_relay()
-        .get()
-        .unwrap()
-        .expect("should be connected to a relay server");
-    println!("\t{relay_url}");
-
-    println!("node listening addresses:");
-    for local_endpoint in network
-        .endpoint()
-        .direct_addresses()
-        .initialized()
-        .await
-        .unwrap()
-    {
-        println!("\t{}", local_endpoint.addr)
-    }
-
-    println!("log events:");
-    if args.log_events {
-        println!("\tenabled");
-    } else {
-        println!("\tdisabled");
-    }
-
-    println!();
-
-    // Print network events to `stdout` if enabled.
-    if args.log_events {
-        tokio::spawn(async move {
-            let mut rx = network.events().await.unwrap();
-            while let Ok(event) = rx.recv().await {
-                println!("{:?}", event);
-            }
-        });
-    }
-
-    // Listen for `Ctrl+c` to terminate.
     signal::ctrl_c().await?;
 
     Ok(())
+}
+
+#[derive(Clone, Default, Debug)]
+pub struct DummyMap;
+
+impl TopicLogMap<TopicId, u64> for DummyMap {
+    type Error = Infallible;
+
+    async fn get(&self, _topic_query: &TopicId) -> Result<Logs<u64>, Self::Error> {
+        Ok(HashMap::new())
+    }
 }

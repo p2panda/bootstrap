@@ -7,12 +7,14 @@ edition = "2024"
 anyhow = "1.0.98"
 clap = { version = "4.5.37", features = ["derive"] }
 hex = "0.4.3"
-p2panda-core = "0.3.1"
-p2panda-net = "0.3.1"
-p2panda-sync = "0.3.1"
-serde = { version = "1.0.219", features = ["derive"] }
-tokio = { version = "1.45.0", features = ["rt", "sync"] }
-tracing-subscriber = "0.3.19"
+p2panda-core = { git = "https://github.com/p2panda/p2panda", branch = "net-rewrite" }
+p2panda-discovery = { git = "https://github.com/p2panda/p2panda", branch = "net-rewrite", package = "p2panda-discovery-next", features = ["test_utils"] }
+p2panda-net = { git = "https://github.com/p2panda/p2panda", branch = "net-rewrite", package = "p2panda-net-next"}
+p2panda-store = { git = "https://github.com/p2panda/p2panda", branch = "net-rewrite", features = ["sqlite"], default-features = false }
+p2panda-sync = { git = "https://github.com/p2panda/p2panda", branch = "net-rewrite", package = "p2panda-sync-next"}
+rand_chacha = "0.9.0"
+serde = { version = "1.0.228", features = ["derive"] }
+tokio = { version = "1.48.0", features = ["rt", "sync"] }
 
 [dev-dependencies]
 tempfile = "3.19.1"
