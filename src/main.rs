@@ -1,34 +1,32 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 mod keystore;
 
-use std::{hash::Hash as StdHash, path::PathBuf};
+use std::path::PathBuf;
+use std::time::Duration;
 
 use anyhow::Result;
 use clap::Parser;
 use p2panda_core::{Hash, PrivateKey};
-use p2panda_net::{NetworkBuilder, TopicId};
-use p2panda_sync::TopicQuery;
-use serde::{Deserialize, Serialize};
+use p2panda_discovery::address_book::AddressBookStore;
+use p2panda_discovery::address_book::memory::MemoryStore;
+use p2panda_net::{AddressBook, Discovery, Endpoint};
+use rand_chacha::ChaCha20Rng;
+use rand_chacha::rand_core::SeedableRng;
 use tokio::signal;
 
 use keystore::KeyStore;
+use tracing::{info, warn};
 
-#[derive(Clone, Debug, PartialEq, Eq, StdHash, Serialize, Deserialize)]
-struct Dummy {}
-
-impl TopicQuery for Dummy {}
-
-impl TopicId for Dummy {
-    fn id(&self) -> [u8; 32] {
-        unreachable!()
-    }
-}
+/// Automatically remove node info which is older than one day.
+const REMOVE_OLDER_THAN: Duration = Duration::from_secs(60 * 60 * 24);
 
 /// Configurable p2panda bootstrap node.
 #[derive(Parser)]
 struct Args {
-    /// Path to data directory.
-    #[arg(short = 'p', long, value_name = "DATA_PATH")]
-    data_path: Option<PathBuf>,
+    /// Path to private key.
+    #[arg(short = 'p', long, value_name = "PRIVATE_KEY")]
+    private_key: Option<PathBuf>,
 
     /// Network ID.
     #[arg(short = 'n', long)]
@@ -37,40 +35,66 @@ struct Args {
     /// Relay URL.
     #[arg(short = 'r', long)]
     relay_url: String,
-
-    /// Print network events to `stdout`.
-    #[arg(short = 'l', long)]
-    log_events: bool,
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Parse the ClI arguments.
+    setup_logging();
+
     let args = Args::parse();
 
     // Use an ephemeral private key if one was not provided.
-    let private_key = if let Some(path) = args.data_path {
-        let private_key_path = path.join("private_key.txt");
-        PrivateKey::load_or_create_new(&private_key_path)?
+    let private_key = if let Some(path) = args.private_key {
+        PrivateKey::load_or_create_new(&path)?
     } else {
         PrivateKey::new()
     };
 
-    // Define the public key, network ID and relay URL.
     let public_key = private_key.public_key();
     let network_id = Hash::new(&args.network_id);
-    let relay_url = args.relay_url.parse().expect("valid relay url");
 
-    // Build the bootstrap network.
-    let network = NetworkBuilder::<Dummy>::new(network_id.into())
-        .private_key(private_key)
-        .bootstrap()
-        .relay(relay_url, false, 0)
-        .build()
+    let rng = ChaCha20Rng::from_os_rng();
+    let address_book_store = MemoryStore::new(rng);
+    let address_book = AddressBook::builder()
+        .store(address_book_store.clone())
+        .spawn()
         .await?;
 
-    // Print banner.
-    println!(
+    let endpoint = Endpoint::builder(address_book.clone())
+        .private_key(private_key.clone())
+        .relay_url(args.relay_url.parse().unwrap())
+        .spawn()
+        .await?;
+
+    let _discovery = Discovery::builder(address_book.clone(), endpoint.clone())
+        .spawn()
+        .await?;
+
+    // Run a frequent "garbage collection" task which removes expired node info's from the address
+    // book. Note that this doesn't mean that the node was actually "stale", it will simply be
+    // removed based on the time from when it was inserted into our address book.
+    //
+    // If this node is still active, it will re-send us their latest info after a while again.
+    let cleanup_handle = {
+        tokio::task::spawn(async move {
+            loop {
+                tokio::time::sleep(REMOVE_OLDER_THAN).await;
+                match address_book_store
+                    .remove_older_than(REMOVE_OLDER_THAN)
+                    .await
+                {
+                    Ok(result) => {
+                        info!("garbage collection removed {result} node infos from address book");
+                    }
+                    Err(err) => {
+                        warn!("calling remove_older_than failed: {err}");
+                    }
+                }
+            }
+        })
+    };
+
+    info!(
         r#"
      ⢀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⢰⣿⡿⠗⠀⠠⠄⡀⠀⠀⠀⠀
@@ -86,55 +110,22 @@ async fn main() -> Result<()> {
         "#
     );
 
-    // Print network info to the terminal.
-    println!("node id:");
-    println!("\t{}", public_key);
+    info!("node id:");
+    info!("\t{}", public_key);
 
-    println!("network id:");
-    println!("\t{}", args.network_id);
-    println!("\t{}", network_id);
+    info!("network id:");
+    info!("\t{}", args.network_id);
+    info!("\t{}", network_id);
 
-    println!("node relay server url:");
-    let relay_url = network
-        .endpoint()
-        .home_relay()
-        .get()
-        .unwrap()
-        .expect("should be connected to a relay server");
-    println!("\t{relay_url}");
-
-    println!("node listening addresses:");
-    for local_endpoint in network
-        .endpoint()
-        .direct_addresses()
-        .initialized()
-        .await
-        .unwrap()
-    {
-        println!("\t{}", local_endpoint.addr)
-    }
-
-    println!("log events:");
-    if args.log_events {
-        println!("\tenabled");
-    } else {
-        println!("\tdisabled");
-    }
-
-    println!();
-
-    // Print network events to `stdout` if enabled.
-    if args.log_events {
-        tokio::spawn(async move {
-            let mut rx = network.events().await.unwrap();
-            while let Ok(event) = rx.recv().await {
-                println!("{:?}", event);
-            }
-        });
-    }
-
-    // Listen for `Ctrl+c` to terminate.
     signal::ctrl_c().await?;
 
+    cleanup_handle.abort();
+
     Ok(())
+}
+
+pub fn setup_logging() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .try_init();
 }
