@@ -1953,8 +1953,7 @@ dependencies = [
 [[package]]
 name = "iroh-gossip"
 version = "0.95.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "026dd31b487ec5e80ac0240f4eb70cd6c0a2800f6ef44beca5329443c194bb22"
+source = "git+https://github.com/p2panda/iroh-gossip?rev=6fad0f740c031876dbb412c7b8237776314d763e#6fad0f740c031876dbb412c7b8237776314d763e"
 dependencies = [
  "blake3",
  "bytes",
@@ -2627,7 +2626,7 @@ checksum = "d05e27ee213611ffe7d6348b942e8f942b37114c00cc03cec254295a4a17852e"
 [[package]]
 name = "p2panda-core"
 version = "0.4.0"
-source = "git+https://github.com/p2panda/p2panda?branch=net-rewrite#42c9e88a7910f4abd390f1731636733b0ed5ac7c"
+source = "git+https://github.com/p2panda/p2panda?branch=net-rewrite#3a196c3118d5a491ea8541fd3adac2a22d2a799a"
 dependencies = [
  "blake3",
  "ciborium",
@@ -2642,7 +2641,7 @@ dependencies = [
 [[package]]
 name = "p2panda-discovery-next"
 version = "0.4.0"
-source = "git+https://github.com/p2panda/p2panda?branch=net-rewrite#42c9e88a7910f4abd390f1731636733b0ed5ac7c"
+source = "git+https://github.com/p2panda/p2panda?branch=net-rewrite#3a196c3118d5a491ea8541fd3adac2a22d2a799a"
 dependencies = [
  "blake3",
  "futures-util",
@@ -2656,7 +2655,7 @@ dependencies = [
 [[package]]
 name = "p2panda-net-next"
 version = "0.4.0"
-source = "git+https://github.com/p2panda/p2panda?branch=net-rewrite#42c9e88a7910f4abd390f1731636733b0ed5ac7c"
+source = "git+https://github.com/p2panda/p2panda?branch=net-rewrite#3a196c3118d5a491ea8541fd3adac2a22d2a799a"
 dependencies = [
  "ciborium",
  "futures-channel",
@@ -2682,7 +2681,7 @@ dependencies = [
 [[package]]
 name = "p2panda-store"
 version = "0.4.0"
-source = "git+https://github.com/p2panda/p2panda?branch=net-rewrite#42c9e88a7910f4abd390f1731636733b0ed5ac7c"
+source = "git+https://github.com/p2panda/p2panda?branch=net-rewrite#3a196c3118d5a491ea8541fd3adac2a22d2a799a"
 dependencies = [
  "ciborium",
  "hex",
@@ -2695,7 +2694,7 @@ dependencies = [
 [[package]]
 name = "p2panda-sync-next"
 version = "0.4.0"
-source = "git+https://github.com/p2panda/p2panda?branch=net-rewrite#42c9e88a7910f4abd390f1731636733b0ed5ac7c"
+source = "git+https://github.com/p2panda/p2panda?branch=net-rewrite#3a196c3118d5a491ea8541fd3adac2a22d2a799a"
 dependencies = [
  "futures",
  "futures-util",
