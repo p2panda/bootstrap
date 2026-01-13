@@ -12,11 +12,11 @@ codegen-units = 1
 anyhow = "1.0.98"
 clap = { version = "4.5.37", features = ["derive"] }
 hex = "0.4.3"
-p2panda-core = { git = "https://github.com/p2panda/p2panda", branch = "net-rewrite" }
-p2panda-discovery = { git = "https://github.com/p2panda/p2panda", branch = "net-rewrite", package = "p2panda-discovery-next", features = ["test_utils"] }
-p2panda-net = { git = "https://github.com/p2panda/p2panda", branch = "net-rewrite", package = "p2panda-net-next"}
-p2panda-store = { git = "https://github.com/p2panda/p2panda", branch = "net-rewrite", features = ["sqlite"], default-features = false }
-p2panda-sync = { git = "https://github.com/p2panda/p2panda", branch = "net-rewrite", package = "p2panda-sync-next"}
+p2panda-core = { git = "https://github.com/p2panda/p2panda", rev = "917d7ec248c6ed4c0be82947e8b9bafcb0997b8c" }
+p2panda-discovery = { git = "https://github.com/p2panda/p2panda", rev = "917d7ec248c6ed4c0be82947e8b9bafcb0997b8c", package = "p2panda-discovery-next" }
+p2panda-net = { git = "https://github.com/p2panda/p2panda", rev = "917d7ec248c6ed4c0be82947e8b9bafcb0997b8c", package = "p2panda-net-next" }
+p2panda-store = { git = "https://github.com/p2panda/p2panda", rev = "917d7ec248c6ed4c0be82947e8b9bafcb0997b8c", features = ["sqlite"], default-features = false }
+p2panda-sync = { git = "https://github.com/p2panda/p2panda", rev = "917d7ec248c6ed4c0be82947e8b9bafcb0997b8c", package = "p2panda-sync-next" }
 rand_chacha = "0.9.0"
 serde = { version = "1.0.228", features = ["derive"] }
 tokio = { version = "1.48.0", features = ["rt", "sync"] }
@@ -25,3 +25,12 @@ tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
 
 [dev-dependencies]
 tempfile = "3.19.1"
+
+[patch.crates-io]
+# TODO: https://github.com/n0-computer/iroh/issues/3241
+iroh = { git = "https://github.com/n0-computer/iroh", rev = "e0fcf7dba99a96566523756be08508390965cda3" }
+iroh-base = { git = "https://github.com/n0-computer/iroh", rev = "e0fcf7dba99a96566523756be08508390965cda3" }
+iroh-quinn = { git = "https://github.com/n0-computer/quinn", rev = "43a7a7c089088472298380d97497043a2967dee3" }
+iroh-quinn-proto = { git = "https://github.com/n0-computer/quinn", rev = "43a7a7c089088472298380d97497043a2967dee3" }
+iroh-quinn-udp = { git = "https://github.com/n0-computer/quinn", rev = "43a7a7c089088472298380d97497043a2967dee3" }
+netwatch = { git = "https://github.com/n0-computer/net-tools", rev = "9af33c3ae16ae96e7b1b56289e783e3329b408dc" }

@@ -95,6 +95,8 @@ async fn main() -> Result<()> {
     // Build the bootstrap network.
     let _network = NetworkBuilder::new(network_id.into())
         .private_key(private_key)
+        .bind_port_v4(0)
+        .bind_port_v6(0)
         .relay(args.relay_url.parse().expect("valid relay url"))
         .build::<_, TopicSyncManager<TopicId, _, _, _, ()>>(store, sync_config)
         .await?;
