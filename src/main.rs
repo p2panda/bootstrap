@@ -63,6 +63,7 @@ async fn main() -> Result<()> {
     let endpoint = Endpoint::builder(address_book.clone())
         .private_key(private_key.clone())
         .relay_url(args.relay_url.parse().unwrap())
+        .network_id(network_id.into())
         .spawn()
         .await?;
 
