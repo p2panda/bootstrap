@@ -2626,7 +2626,7 @@ checksum = "d05e27ee213611ffe7d6348b942e8f942b37114c00cc03cec254295a4a17852e"
 [[package]]
 name = "p2panda-core"
 version = "0.4.0"
-source = "git+https://github.com/p2panda/p2panda?branch=net-rewrite#3a196c3118d5a491ea8541fd3adac2a22d2a799a"
+source = "git+https://github.com/p2panda/p2panda?rev=8c3bcf723b34fab8147b0c05e172408dd321634b#8c3bcf723b34fab8147b0c05e172408dd321634b"
 dependencies = [
  "blake3",
  "ciborium",
@@ -2641,7 +2641,7 @@ dependencies = [
 [[package]]
 name = "p2panda-discovery-next"
 version = "0.4.0"
-source = "git+https://github.com/p2panda/p2panda?branch=net-rewrite#3a196c3118d5a491ea8541fd3adac2a22d2a799a"
+source = "git+https://github.com/p2panda/p2panda?rev=8c3bcf723b34fab8147b0c05e172408dd321634b#8c3bcf723b34fab8147b0c05e172408dd321634b"
 dependencies = [
  "blake3",
  "futures-util",
@@ -2655,7 +2655,7 @@ dependencies = [
 [[package]]
 name = "p2panda-net-next"
 version = "0.4.0"
-source = "git+https://github.com/p2panda/p2panda?branch=net-rewrite#3a196c3118d5a491ea8541fd3adac2a22d2a799a"
+source = "git+https://github.com/p2panda/p2panda?rev=8c3bcf723b34fab8147b0c05e172408dd321634b#8c3bcf723b34fab8147b0c05e172408dd321634b"
 dependencies = [
  "ciborium",
  "futures-channel",
@@ -2681,7 +2681,7 @@ dependencies = [
 [[package]]
 name = "p2panda-store"
 version = "0.4.0"
-source = "git+https://github.com/p2panda/p2panda?branch=net-rewrite#3a196c3118d5a491ea8541fd3adac2a22d2a799a"
+source = "git+https://github.com/p2panda/p2panda?rev=8c3bcf723b34fab8147b0c05e172408dd321634b#8c3bcf723b34fab8147b0c05e172408dd321634b"
 dependencies = [
  "ciborium",
  "hex",
@@ -2694,7 +2694,7 @@ dependencies = [
 [[package]]
 name = "p2panda-sync-next"
 version = "0.4.0"
-source = "git+https://github.com/p2panda/p2panda?branch=net-rewrite#3a196c3118d5a491ea8541fd3adac2a22d2a799a"
+source = "git+https://github.com/p2panda/p2panda?rev=8c3bcf723b34fab8147b0c05e172408dd321634b#8c3bcf723b34fab8147b0c05e172408dd321634b"
 dependencies = [
  "futures",
  "futures-util",
