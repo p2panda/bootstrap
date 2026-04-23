@@ -7,12 +7,11 @@ use std::time::Duration;
 
 use anyhow::Result;
 use clap::Parser;
-use p2panda_core::{Hash, PrivateKey};
-use p2panda_discovery::address_book::AddressBookStore;
-use p2panda_discovery::address_book::memory::MemoryStore;
+use p2panda_core::{Hash, PrivateKey, PublicKey};
+use p2panda_net::addrs::NodeInfo;
 use p2panda_net::{AddressBook, Discovery, Endpoint};
-use rand_chacha::ChaCha20Rng;
-use rand_chacha::rand_core::SeedableRng;
+use p2panda_store::address_book::AddressBookStore;
+use p2panda_store::{SqliteStore, SqliteStoreBuilder};
 use tokio::signal;
 
 use keystore::KeyStore;
@@ -53,8 +52,7 @@ async fn main() -> Result<()> {
     let public_key = private_key.public_key();
     let network_id = Hash::new(&args.network_id);
 
-    let rng = ChaCha20Rng::from_os_rng();
-    let address_book_store = MemoryStore::new(rng);
+    let address_book_store = SqliteStoreBuilder::new().build().await?;
     let address_book = AddressBook::builder()
         .store(address_book_store.clone())
         .spawn()
@@ -80,9 +78,11 @@ async fn main() -> Result<()> {
         tokio::task::spawn(async move {
             loop {
                 tokio::time::sleep(REMOVE_OLDER_THAN).await;
-                match address_book_store
-                    .remove_older_than(REMOVE_OLDER_THAN)
-                    .await
+                match <SqliteStore as AddressBookStore<PublicKey, NodeInfo>>::remove_older_than(
+                    &address_book_store,
+                    REMOVE_OLDER_THAN,
+                )
+                .await
                 {
                     Ok(result) => {
                         info!("garbage collection removed {result} node infos from address book");
