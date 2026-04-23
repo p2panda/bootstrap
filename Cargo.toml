@@ -12,11 +12,12 @@ codegen-units = 1
 anyhow = "1.0.98"
 clap = { version = "4.5.37", features = ["derive"] }
 hex = "0.4.3"
-p2panda-core = { version = "0.5.2", default-features = false }
-p2panda-discovery = { version = "0.5.2", default-features = false }
-p2panda-net = { version = "0.5.2", default-features = false, features = ["address_book", "iroh_endpoint", "discovery"] }
+p2panda-core = { git = "https://github.com/p2panda/p2panda", branch = "main", default-features = false }
+p2panda-discovery = { git = "https://github.com/p2panda/p2panda", branch = "main", default-features = false }
+p2panda-net = { git = "https://github.com/p2panda/p2panda", branch = "main", default-features = false, features = ["address_book", "iroh_endpoint", "discovery"] }
+p2panda-store = { git = "https://github.com/p2panda/p2panda", branch = "main", default-features = false, features = ["sqlite"] }
 rand_chacha = "0.9.0"
-tokio = { version = "1.48.0", features = ["rt-multi-thread"] }
+tokio = { version = "1.48.0", features = ["rt-multi-thread", "signal"] }
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
 
