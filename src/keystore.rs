@@ -8,7 +8,7 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use p2panda_core::PrivateKey;
+use p2panda_core::SigningKey;
 
 /// Storage and retrieval trait for an Ed25519 private key.
 pub trait KeyStore {
@@ -16,15 +16,15 @@ pub trait KeyStore {
     fn save(&self, path: &Path) -> Result<()>;
 
     /// Load the private key from file at the given path.
-    fn load(path: &Path) -> Result<PrivateKey>;
+    fn load(path: &Path) -> Result<SigningKey>;
 
     /// Load the private key from file at the given path if it exists.
     /// Otherise create a new, random private key, save it to file and
     /// return it.
-    fn load_or_create_new(path: &Path) -> Result<PrivateKey>;
+    fn load_or_create_new(path: &Path) -> Result<SigningKey>;
 }
 
-impl KeyStore for PrivateKey {
+impl KeyStore for SigningKey {
     fn save(&self, path: &Path) -> Result<()> {
         let encoded_private_key = &self.to_hex();
 
@@ -50,7 +50,7 @@ impl KeyStore for PrivateKey {
 
         let private_key_bytes = hex::decode(contents)?;
         let private_key_bytes_array: [u8; 32] = private_key_bytes.as_slice().try_into()?;
-        let private_key = PrivateKey::from_bytes(&private_key_bytes_array);
+        let private_key = SigningKey::from_bytes(&private_key_bytes_array);
 
         Ok(private_key)
     }
@@ -59,7 +59,7 @@ impl KeyStore for PrivateKey {
         let private_key = if let Ok(private_key) = Self::load(path) {
             private_key
         } else {
-            let private_key = PrivateKey::new();
+            let private_key = SigningKey::generate();
             Self::save(&private_key, path)?;
             private_key
         };
@@ -70,7 +70,7 @@ impl KeyStore for PrivateKey {
 
 #[cfg(test)]
 mod tests {
-    use p2panda_core::PrivateKey;
+    use p2panda_core::SigningKey;
     use tempfile::tempdir;
 
     use super::KeyStore;
@@ -81,18 +81,18 @@ mod tests {
         let file_path = tmp_dir.path().join("test_secret.txt");
 
         // Ensure load attempt fails.
-        let load_attempt = PrivateKey::load(&file_path);
+        let load_attempt = SigningKey::load(&file_path);
         assert!(load_attempt.is_err());
 
         // Attempt to load nonexistent private key from file (creates a new one).
-        let private_key = PrivateKey::load_or_create_new(&file_path).unwrap();
+        let private_key = SigningKey::load_or_create_new(&file_path).unwrap();
 
         // Ensure the private key was saved to file by `load_or_create_new()`.
-        let load_attempt = PrivateKey::load(&file_path);
+        let load_attempt = SigningKey::load(&file_path);
         assert!(load_attempt.is_ok());
 
         // Load the private key from file and ensure it matches the original.
-        let retrieved_private_key = PrivateKey::load_or_create_new(&file_path).unwrap();
+        let retrieved_private_key = SigningKey::load_or_create_new(&file_path).unwrap();
         assert_eq!(private_key.as_bytes(), retrieved_private_key.as_bytes());
     }
 }

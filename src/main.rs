@@ -7,12 +7,9 @@ use std::time::Duration;
 
 use anyhow::Result;
 use clap::Parser;
-use p2panda_core::{Hash, PrivateKey};
-use p2panda_discovery::address_book::AddressBookStore;
-use p2panda_discovery::address_book::memory::MemoryStore;
-use p2panda_net::{AddressBook, Discovery, Endpoint};
-use rand_chacha::ChaCha20Rng;
-use rand_chacha::rand_core::SeedableRng;
+use p2panda_core::{Hash, SigningKey, VerifyingKey};
+use p2panda_net::{AddressBook, Discovery, Endpoint, addrs::NodeInfo};
+use p2panda_store::{SqliteStore, SqliteStoreBuilder, address_book::AddressBookStore};
 use tokio::signal;
 
 use keystore::KeyStore;
@@ -24,9 +21,9 @@ const REMOVE_OLDER_THAN: Duration = Duration::from_secs(60 * 60 * 24);
 /// Configurable p2panda bootstrap node.
 #[derive(Parser)]
 struct Args {
-    /// Path to private key.
-    #[arg(short = 'p', long, value_name = "PRIVATE_KEY")]
-    private_key: Option<PathBuf>,
+    /// Path to signing key.
+    #[arg(short = 'p', long, value_name = "SIGNING_KEY")]
+    signing_key: Option<PathBuf>,
 
     /// Network ID.
     #[arg(short = 'n', long)]
@@ -43,33 +40,29 @@ async fn main() -> Result<()> {
 
     let args = Args::parse();
 
-    // Use an ephemeral private key if one was not provided.
-    let private_key = if let Some(path) = args.private_key {
-        PrivateKey::load_or_create_new(&path)?
+    // Use an ephemeral signing key if one was not provided.
+    let signing_key = if let Some(path) = args.signing_key {
+        SigningKey::load_or_create_new(&path)?
     } else {
-        PrivateKey::new()
+        SigningKey::generate()
     };
 
-    let public_key = private_key.public_key();
-    let network_id = Hash::new(&args.network_id);
+    let verifying_key = signing_key.verifying_key();
+    let network_id = Hash::digest(&args.network_id);
 
-    let rng = ChaCha20Rng::from_os_rng();
-    let address_book_store = MemoryStore::new(rng);
-    let address_book = AddressBook::builder()
-        .store(address_book_store.clone())
-        .spawn()
-        .await?;
+    // Initialise in-memory SQLite database. The bootstrap doesn't need to persist anything.
+    let store = SqliteStoreBuilder::new().build().await?;
+
+    let address_book = AddressBook::builder().store(store.clone()).spawn().await?;
 
     let endpoint = Endpoint::builder(address_book.clone())
-        .private_key(private_key.clone())
-        .relay_url(args.relay_url.parse().unwrap())
+        .signing_key(signing_key)
+        .relay_url(args.relay_url.parse().expect("valid iroh relay URL"))
         .network_id(network_id.into())
         .spawn()
         .await?;
 
-    let _discovery = Discovery::builder(address_book.clone(), endpoint.clone())
-        .spawn()
-        .await?;
+    let _discovery = Discovery::builder(address_book, endpoint).spawn().await?;
 
     // Run a frequent "garbage collection" task which removes expired node info's from the address
     // book. Note that this doesn't mean that the node was actually "stale", it will simply be
@@ -80,9 +73,11 @@ async fn main() -> Result<()> {
         tokio::task::spawn(async move {
             loop {
                 tokio::time::sleep(REMOVE_OLDER_THAN).await;
-                match address_book_store
-                    .remove_older_than(REMOVE_OLDER_THAN)
-                    .await
+                match <SqliteStore as AddressBookStore<VerifyingKey, NodeInfo>>::remove_older_than(
+                    &store,
+                    REMOVE_OLDER_THAN,
+                )
+                .await
                 {
                     Ok(result) => {
                         info!("garbage collection removed {result} node infos from address book");
@@ -112,7 +107,7 @@ async fn main() -> Result<()> {
     );
 
     info!("node id:");
-    info!("\t{}", public_key);
+    info!("\t{}", verifying_key);
 
     info!("network id:");
     info!("\t{}", args.network_id);

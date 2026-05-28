@@ -14,40 +14,36 @@
 
 Configurable p2panda bootstrap node.
 
-## Behaviour
+## Usage
 
-If no private key path is provided, the node will run with a randomly-generated ephemeral keypair.
-Otherwise the keypair will be loaded from file (or created and saved to file if one was not
-previously generated).
+If no signing key path is provided, the node will run with a randomly-generated ephemeral keypair.
+Otherwise the key will be loaded from file (or created and saved to file if one was not previously
+generated).
 
 The network ID and relay URL **must** be provided.
 
-Network system event logging may be optionally enabled and will print to `stdout`.
-
-## Help
-
-`bootstrap --help`
+Network system event logging may be optionally enabled with the `RUST_LOG` environment variable.
 
 ```
-Configurable p2panda bootstrap node
-
 Usage: bootstrap [OPTIONS] --network-id <NETWORK_ID> --relay-url <RELAY_URL>
 
 Options:
-  -p, --private-key <PRIVATE_KEY>  Path to private key
+  -p, --signing-key <SIGNING_KEY>  Path to signing key
   -n, --network-id <NETWORK_ID>    Network ID
   -r, --relay-url <RELAY_URL>      Relay URL
   -h, --help                       Print help
 ```
 
+Running `bootstrap` will print the node's ID you can then use in your application to bootstrap into
+the network. We provide methods for this in
+[`p2panda`](https://docs.rs/p2panda/latest/p2panda/struct.NodeBuilder.html#method.bootstrap) and
+[`p2panda-net`](https://docs.rs/p2panda-net/latest/p2panda_net/struct.AddressBook.html#example).
+
 ## Example
 
-`RUST_LOG=info bootstrap --network-id chat --relay-url https://euc1-1.relay.n0.iroh-canary.iroh.link.`
-
-```
-2026-01-26T16:13:43.759430Z  INFO bootstrap: node id:
-2026-01-26T16:13:43.759460Z  INFO bootstrap: 	bdde8d429630cc8cf2a7bf89afb527ce1483ab2254f6e01cb83c4685bcc0034d
-2026-01-26T16:13:43.759514Z  INFO bootstrap: network id:
-2026-01-26T16:13:43.759537Z  INFO bootstrap: 	chat
-2026-01-26T16:13:43.759556Z  INFO bootstrap: 	504c1dbb87fc1cd93594bd6baad1b520229bd222e16d9c48138998f602993c67
+```bash
+RUST_LOG=info bootstrap \
+    --signing-key ./key.secret \
+    --network-id chat \
+    --relay-url https://euc1-1.relay.n0.iroh-canary.iroh.link.
 ```
