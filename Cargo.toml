@@ -13,7 +13,6 @@ codegen-units = 1
 clap = { version = "4.6.1", features = ["derive"] }
 hex = "0.4.3"
 p2panda-core = { git = "https://github.com/p2panda/p2panda", rev = "bf4889a23449aa5d8c4930daafa172b918d0c2ee", default-features = false }
-p2panda-discovery = { git = "https://github.com/p2panda/p2panda", rev = "bf4889a23449aa5d8c4930daafa172b918d0c2ee", default-features = false }
 p2panda-net = { git = "https://github.com/p2panda/p2panda", rev = "bf4889a23449aa5d8c4930daafa172b918d0c2ee", default-features = false, features = ["address_book", "iroh_endpoint", "discovery"] }
 p2panda-store = { git = "https://github.com/p2panda/p2panda", rev = "bf4889a23449aa5d8c4930daafa172b918d0c2ee" }
 tokio = { version = "1.52.3", features = ["rt-multi-thread", "signal"] }
