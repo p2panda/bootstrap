@@ -7,31 +7,32 @@ use std::io::prelude::*;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 
-use anyhow::{Context, Result};
 use p2panda_core::SigningKey;
 
 /// Storage and retrieval trait for an Ed25519 private key.
 pub trait KeyStore {
+    type Error;
+
     /// Save the hex-encoded private key at the given path.
-    fn save(&self, path: &Path) -> Result<()>;
+    fn save(&self, path: &Path) -> Result<(), Self::Error>;
 
     /// Load the private key from file at the given path.
-    fn load(path: &Path) -> Result<SigningKey>;
+    fn load(path: &Path) -> Result<SigningKey, Self::Error>;
 
-    /// Load the private key from file at the given path if it exists.
-    /// Otherise create a new, random private key, save it to file and
-    /// return it.
-    fn load_or_create_new(path: &Path) -> Result<SigningKey>;
+    /// Load the private key from file at the given path if it exists. Otherwise create a new,
+    /// random private key, save it to file and return it.
+    fn load_or_create_new(path: &Path) -> Result<SigningKey, Self::Error>;
 }
 
 impl KeyStore for SigningKey {
-    fn save(&self, path: &Path) -> Result<()> {
+    type Error = std::io::Error;
+
+    fn save(&self, path: &Path) -> Result<(), std::io::Error> {
         let encoded_private_key = &self.to_hex();
 
-        fs::create_dir_all(
-            path.parent()
-                .context("failed to get parent directory of key store path")?,
-        )?;
+        fs::create_dir_all(path.parent().ok_or(std::io::Error::other(
+            "failed to get parent directory of key store path",
+        ))?)?;
         let mut file = File::create(path)?;
         file.write_all(encoded_private_key.as_bytes())?;
         file.sync_all()?;
@@ -43,19 +44,22 @@ impl KeyStore for SigningKey {
         Ok(())
     }
 
-    fn load(path: &Path) -> Result<Self> {
+    fn load(path: &Path) -> Result<Self, std::io::Error> {
         let mut file = File::open(path)?;
         let mut contents = String::new();
         file.read_to_string(&mut contents)?;
 
-        let private_key_bytes = hex::decode(contents)?;
-        let private_key_bytes_array: [u8; 32] = private_key_bytes.as_slice().try_into()?;
+        let private_key_bytes = hex::decode(contents).map_err(std::io::Error::other)?;
+        let private_key_bytes_array: [u8; 32] = private_key_bytes
+            .as_slice()
+            .try_into()
+            .map_err(std::io::Error::other)?;
         let private_key = SigningKey::from_bytes(&private_key_bytes_array);
 
         Ok(private_key)
     }
 
-    fn load_or_create_new(path: &Path) -> Result<Self> {
+    fn load_or_create_new(path: &Path) -> Result<Self, std::io::Error> {
         let private_key = if let Ok(private_key) = Self::load(path) {
             private_key
         } else {

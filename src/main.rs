@@ -5,7 +5,6 @@ mod keystore;
 use std::path::PathBuf;
 use std::time::Duration;
 
-use anyhow::Result;
 use clap::Parser;
 use p2panda_core::{Hash, SigningKey, VerifyingKey};
 use p2panda_net::{AddressBook, Discovery, Endpoint, addrs::NodeInfo};
@@ -35,7 +34,7 @@ struct Args {
 }
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     setup_logging();
 
     let args = Args::parse();
