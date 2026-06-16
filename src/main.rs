@@ -8,11 +8,12 @@ use std::time::Duration;
 use clap::Parser;
 use p2panda_core::{Hash, SigningKey, VerifyingKey};
 use p2panda_net::{AddressBook, Discovery, Endpoint, addrs::NodeInfo};
+use p2panda_store::Transaction;
 use p2panda_store::{SqliteStore, SqliteStoreBuilder, address_book::AddressBookStore};
 use tokio::signal;
 
 use keystore::KeyStore;
-use tracing::{info, warn};
+use tracing::{error, info};
 
 /// Automatically remove node info which is older than one day.
 const REMOVE_OLDER_THAN: Duration = Duration::from_secs(60 * 60 * 24);
@@ -72,6 +73,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         tokio::task::spawn(async move {
             loop {
                 tokio::time::sleep(REMOVE_OLDER_THAN).await;
+
+                let Ok(permit) = store.begin().await else {
+                    error!("requiring tx permit failed");
+                    continue;
+                };
+
                 match <SqliteStore as AddressBookStore<VerifyingKey, NodeInfo>>::remove_older_than(
                     &store,
                     REMOVE_OLDER_THAN,
@@ -80,9 +87,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 {
                     Ok(result) => {
                         info!("garbage collection removed {result} node infos from address book");
+                        let _ = store.commit(permit).await;
                     }
                     Err(err) => {
-                        warn!("calling remove_older_than failed: {err}");
+                        error!("calling remove_older_than failed: {err}");
                     }
                 }
             }
