@@ -2689,7 +2689,7 @@ checksum = "7c87def4c32ab89d880effc9e097653c8da5d6ef28e6b539d313baaacfbafcbe"
 [[package]]
 name = "p2panda-core"
 version = "0.6.1"
-source = "git+https://github.com/p2panda/p2panda?rev=8c8b4a04f37603493374c0a85d8cb1c8f67483dd#8c8b4a04f37603493374c0a85d8cb1c8f67483dd"
+source = "git+https://github.com/p2panda/p2panda?rev=bccc7f55357980bc16a4d7d58e9de845e79e493b#bccc7f55357980bc16a4d7d58e9de845e79e493b"
 dependencies = [
  "blake3",
  "ciborium",
@@ -2704,7 +2704,7 @@ dependencies = [
 [[package]]
 name = "p2panda-discovery"
 version = "0.6.1"
-source = "git+https://github.com/p2panda/p2panda?rev=8c8b4a04f37603493374c0a85d8cb1c8f67483dd#8c8b4a04f37603493374c0a85d8cb1c8f67483dd"
+source = "git+https://github.com/p2panda/p2panda?rev=bccc7f55357980bc16a4d7d58e9de845e79e493b#bccc7f55357980bc16a4d7d58e9de845e79e493b"
 dependencies = [
  "blake3",
  "futures-util",
@@ -2719,7 +2719,7 @@ dependencies = [
 [[package]]
 name = "p2panda-net"
 version = "0.6.1"
-source = "git+https://github.com/p2panda/p2panda?rev=8c8b4a04f37603493374c0a85d8cb1c8f67483dd#8c8b4a04f37603493374c0a85d8cb1c8f67483dd"
+source = "git+https://github.com/p2panda/p2panda?rev=bccc7f55357980bc16a4d7d58e9de845e79e493b#bccc7f55357980bc16a4d7d58e9de845e79e493b"
 dependencies = [
  "futures-channel",
  "futures-util",
@@ -2744,7 +2744,7 @@ dependencies = [
 [[package]]
 name = "p2panda-store"
 version = "0.6.1"
-source = "git+https://github.com/p2panda/p2panda?rev=8c8b4a04f37603493374c0a85d8cb1c8f67483dd#8c8b4a04f37603493374c0a85d8cb1c8f67483dd"
+source = "git+https://github.com/p2panda/p2panda?rev=bccc7f55357980bc16a4d7d58e9de845e79e493b#bccc7f55357980bc16a4d7d58e9de845e79e493b"
 dependencies = [
  "p2panda-core",
  "serde",

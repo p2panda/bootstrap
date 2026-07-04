@@ -51,7 +51,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let network_id = Hash::digest(&args.network_id);
 
     // Initialise in-memory SQLite database. The bootstrap doesn't need to persist anything.
-    let store = SqliteStoreBuilder::new().build().await?;
+    let store = SqliteStoreBuilder::memory().build().await?;
 
     let address_book = AddressBook::builder().store(store.clone()).spawn().await?;
 
