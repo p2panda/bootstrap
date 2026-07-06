@@ -12,9 +12,9 @@ codegen-units = 1
 [dependencies]
 clap = { version = "4.6.1", features = ["derive"] }
 hex = "0.4.3"
-p2panda-core = { git = "https://github.com/p2panda/p2panda", rev = "bccc7f55357980bc16a4d7d58e9de845e79e493b", default-features = false }
-p2panda-net = { git = "https://github.com/p2panda/p2panda", rev = "bccc7f55357980bc16a4d7d58e9de845e79e493b", default-features = false, features = ["address_book", "iroh_endpoint", "discovery"] }
-p2panda-store = { git = "https://github.com/p2panda/p2panda", rev = "bccc7f55357980bc16a4d7d58e9de845e79e493b" }
+p2panda-core = { git = "https://github.com/p2panda/p2panda", rev = "30b3bcfe0c6940ed17efb39f9d734e6e9b4e9ecb", default-features = false }
+p2panda-net = { git = "https://github.com/p2panda/p2panda", rev = "30b3bcfe0c6940ed17efb39f9d734e6e9b4e9ecb", default-features = false, features = ["address_book", "iroh_endpoint", "discovery"] }
+p2panda-store = { git = "https://github.com/p2panda/p2panda", rev = "30b3bcfe0c6940ed17efb39f9d734e6e9b4e9ecb" }
 tokio = { version = "1.52.3", features = ["rt-multi-thread", "signal"] }
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
